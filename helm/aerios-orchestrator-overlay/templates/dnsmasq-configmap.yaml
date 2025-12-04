@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.configMaps.dnsmasq.name }}
+  namespace: {{ .Values.namespace }}
+data:
+  dnsmasq.conf: |
+    server={{ .Values.configMaps.dnsmasq.server }}

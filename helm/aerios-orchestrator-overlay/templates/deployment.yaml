@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.deployment.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.deployment.labels.app }}
+spec:
+  replicas: {{ .Values.deployment.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.deployment.labels.app }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.deployment.labels.app }}
+    spec:
+      dnsPolicy: None
+      dnsConfig:
+        nameservers:
+          - {{ .Values.dns.nameservers.primary }}
+          - {{ .Values.dns.nameservers.secondary }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml .Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: wireguard
+          image: "{{ .Values.wireguard.image.repository }}:{{ .Values.wireguard.image.tag }}"
+          command: ["sh", "-c", "/entrypoint.sh"]
+          ports:
+          - containerPort: {{ .Values.wireguard.ports.wireguard }}
+            protocol: UDP
+            name: wireguard
+          securityContext:
+            capabilities:
+              add:
+                - NET_ADMIN
+                - SYS_MODULE
+            privileged: {{ .Values.wireguard.security.privileged }}
+          volumeMounts:
+            - name: cfgmap
+              mountPath: /etc/wireguard/wg0.conf
+              subPath: wg0.conf
+            - name: host-volumes
+              mountPath: /lib/modules
+          resources:
+            requests:
+              memory: {{ .Values.wireguard.resources.requests.memory }}
+              cpu: {{ .Values.wireguard.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.wireguard.resources.limits.memory }}
+              cpu: {{ .Values.wireguard.resources.limits.cpu }}
+        - name: dnsmasq
+          image: "{{ .Values.dnsmasq.image.repository }}:{{ .Values.dnsmasq.image.tag }}"
+          ports:
+          - containerPort: {{ .Values.dnsmasq.ports.dns }}
+            protocol: UDP
+          volumeMounts:
+          - name: dnsmasq-configmap
+            mountPath: /etc/dnsmasq.conf
+            subPath: dnsmasq.conf
+          resources:
+            requests:
+              memory: {{ .Values.dnsmasq.resources.requests.memory }}
+              cpu: {{ .Values.dnsmasq.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.dnsmasq.resources.limits.memory }}
+              cpu: {{ .Values.dnsmasq.resources.limits.cpu }}
+      volumes:
+        - name: cfgmap
+          configMap:
+            name: {{ .Values.configMaps.wireguard.name }}
+        - name: host-volumes
+          hostPath:
+            path: {{ .Values.hostPath.modules }}
+            type: Directory
+        - name: dnsmasq-configmap
+          configMap:
+            name: {{ .Values.configMaps.dnsmasq.name }}

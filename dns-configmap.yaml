@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dnsmasq-configmap
+  namespace: default
+data:
+  dnsmasq.conf: |
+    server=8.8.8.8

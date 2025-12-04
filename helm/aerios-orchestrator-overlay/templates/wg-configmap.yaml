@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.configMaps.wireguard.name }}
+  namespace: {{ .Values.namespace }}
+data:
+  wg0.conf: |	
+    [Interface]
+    Address = {{ .Values.configMaps.wireguard.address }}
+    ListenPort = {{ .Values.configMaps.wireguard.listenPort }}
+    PrivateKey = {{ .Values.configMaps.wireguard.privateKey }}
+    PostUp = {{ .Values.configMaps.wireguard.postUp }}
+    PostDown = {{ .Values.configMaps.wireguard.postDown }}
