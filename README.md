@@ -2,6 +2,8 @@
 # aeriOS-Orchestrator-Overlay  
 Interconnect aeriOS service components within an isolated network overlay.
 
+![Service Overlay](aeros-connection-components.png)
+
 ---
 
 ## Description  
